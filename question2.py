@@ -2,7 +2,6 @@ import pygame
 import sys
 import random
 
-# Initialize the game
 pygame.init()
 
 # Declare screen dimensions
@@ -41,3 +40,182 @@ level_data = []
 font = pygame.font.Font(None, 36)
 medium_font = pygame.font.Font(None, 48)
 large_font = pygame.font.Font(None, 72)
+
+# Class for the main character which is humanly shaped in the game.
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.width = 40
+        self.height = 60
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.draw_character(self.image, BLUE) # Draw the character onto the surface
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.speed = 5
+        self.jump_power = -20 
+        self.y_velocity = 0
+        self.is_jumping = False
+        self.health = 100
+        self.max_health = 100
+        self.lives = 3
+        self.direction = 1  # 1 for right, -1 for left
+        self.projectiles = pygame.sprite.Group()
+        self.invincible_timer = 0 
+        self.invincible_duration = 90 
+
+    def draw_character(self, surface, body_color):
+        """Draws a human-like character onto the given surface with more detail."""
+        surface.fill((0, 0, 0, 0))
+        
+        # Draw head circular shape
+        head_radius = self.width // 3
+        head_center_x = self.width // 2
+        head_center_y = head_radius + 2 # Slightly lower for neck space
+        pygame.draw.circle(surface, SKIN_COLOR, (head_center_x, head_center_y), head_radius)
+
+        # Neck
+        neck_width = self.width * 0.2
+        neck_height = self.height * 0.05
+        neck_x = (self.width - neck_width) // 2
+        neck_y = head_center_y + head_radius - 2
+        pygame.draw.rect(surface, SKIN_COLOR, (neck_x, neck_y, neck_width, neck_height))
+
+        
+        torso_width = self.width * 0.7
+        torso_height = self.height * 0.3
+        torso_x = (self.width - torso_width) // 2
+        torso_y = neck_y + neck_height
+        pygame.draw.rect(surface, body_color, (torso_x, torso_y, torso_width, torso_height))
+
+        # Two Arms
+        arm_width = self.width * 0.15
+        arm_height = self.height * 0.3
+        arm_y = torso_y + 5 # Start slightly below shoulder
+        
+        # Left arm
+        pygame.draw.rect(surface, body_color, (torso_x - arm_width, arm_y, arm_width, arm_height))
+        # Right arm
+        pygame.draw.rect(surface, body_color, (torso_x + torso_width, arm_y, arm_width, arm_height))
+
+        # Hands just small circle
+        hand_radius = 4
+        pygame.draw.circle(surface, SKIN_COLOR, (torso_x - arm_width + arm_width // 2, arm_y + arm_height), hand_radius)
+        pygame.draw.circle(surface, SKIN_COLOR, (torso_x + torso_width + arm_width // 2, arm_y + arm_height), hand_radius)
+
+
+        # Hips
+        pelvis_width = self.width * 0.8
+        pelvis_height = self.height * 0.1
+        pelvis_x = (self.width - pelvis_width) // 2
+        pelvis_y = torso_y + torso_height
+        pygame.draw.rect(surface, body_color, (pelvis_x, pelvis_y, pelvis_width, pelvis_height))
+
+        # Legs
+        leg_segment_width = pelvis_width // 2 - 4 # Account for gap
+        leg_segment_height = self.height * 0.2
+        
+        # Left thigh
+        thigh_y = pelvis_y + pelvis_height
+        pygame.draw.rect(surface, body_color, (pelvis_x, thigh_y, leg_segment_width, leg_segment_height))
+        # Right thigh
+        pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, thigh_y, leg_segment_width, leg_segment_height))
+
+        # Left shin
+        shin_y = thigh_y + leg_segment_height
+        pygame.draw.rect(surface, body_color, (pelvis_x, shin_y, leg_segment_width, leg_segment_height))
+        # Right shin
+        pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, shin_y, leg_segment_width, leg_segment_height))
+
+        # Feet
+        foot_width = leg_segment_width + 2
+        foot_height = 5
+        foot_y = shin_y + leg_segment_height
+        pygame.draw.rect(surface, BLACK, (pelvis_x, foot_y, foot_width, foot_height))
+        pygame.draw.rect(surface, BLACK, (pelvis_x + pelvis_width - foot_width, foot_y, foot_width, foot_height))
+
+
+        # Face details        
+        pygame.draw.circle(surface, BLACK, (head_center_x - head_radius // 2, head_center_y - head_radius // 4), 2)
+        pygame.draw.circle(surface, BLACK, (head_center_x + head_radius // 2, head_center_y - head_radius // 4), 2)
+        pygame.draw.line(surface, BLACK, (head_center_x - head_radius // 3, head_center_y + head_radius // 4), (head_center_x + head_radius // 3, head_center_y + head_radius // 4), 1)
+    
+    def update(self, platforms):
+        self.y_velocity += 0.7
+        self.rect.y += self.y_velocity
+
+        # Check for collision
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                if self.y_velocity > 0: # Falling
+                    self.rect.bottom = platform.rect.top
+                    self.is_jumping = False
+                    self.y_velocity = 0
+                elif self.y_velocity < 0: # Jumping up
+                    self.rect.top = platform.rect.bottom
+                    self.y_velocity = 0
+
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+
+        # Update timer
+        if self.invincible_timer > 0:
+            self.invincible_timer -= 1
+
+        # Update projectiles
+        self.projectiles.update()
+
+    def move(self, dx):
+        self.rect.x += dx * self.speed
+        if dx > 0:
+            self.direction = 1
+        elif dx < 0:
+            self.direction = -1
+
+    def jump(self):
+        if not self.is_jumping:
+            self.y_velocity = self.jump_power
+            self.is_jumping = True
+
+    def shoot(self):
+        # Create a new projectile
+        projectile = Projectile(self.rect.centerx, self.rect.centery - 10, self.direction)
+        self.projectiles.add(projectile)
+
+    def take_damage(self, damage):
+        if self.invincible_timer == 0:
+            self.health -= damage
+            self.invincible_timer = self.invincible_duration
+            if self.health <= 0:
+                self.lives -= 1
+                if self.lives > 0:
+                    self.health = self.max_health # Reset health for next life
+                else:
+                    return True # Player is dead
+        return False # Player is not dead
+
+    def draw(self, screen):
+        if self.invincible_timer > 0 and (self.invincible_timer // 10) % 2 == 0:
+            # Create a flashing image by drawing a red version
+            flashing_image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+            self.draw_character(flashing_image, RED) # Use RED for flashing
+            screen.blit(flashing_image, self.rect)
+        else:
+            screen.blit(self.image, self.rect)
+        
+        # Draw health bar
+        health_bar_width = self.rect.width
+        health_bar_height = 5
+        health_bar_x = self.rect.x
+        health_bar_y = self.rect.y - 10
+        pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
+        current_health_width = (self.health / self.max_health) * health_bar_width
+        pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
+
+        # Draw projectiles
+        self.projectiles.draw(screen)
+  
+
+
+
+    
