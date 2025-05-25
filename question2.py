@@ -368,6 +368,22 @@ class Enemy(pygame.sprite.Sprite):
         pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
 
 
+class Collectible(pygame.sprite.Sprite):
+    def __init__(self, x, y, collectible_type):
+        super().__init__()
+        self.collectible_type = collectible_type
+        self.image = pygame.Surface((30, 30))
+        if self.collectible_type == "health_boost":
+            self.image.fill(GREEN)
+            self.value = 25 # Health restored
+        elif self.collectible_type == "extra_life":
+            self.image.fill(ORANGE)
+            self.value = 1 # Extra life
+        elif self.collectible_type == "score_boost":
+            self.image.fill(YELLOW)
+            self.value = 50 # Score added
+        self.rect = self.image.get_rect(topleft=(x, y))
 
-
+    def draw(self, screen):
+        screen.blit(self.image, self.rect)
     
