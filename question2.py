@@ -397,3 +397,62 @@ class Platform(pygame.sprite.Sprite):
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        
+level_data = [
+    # Level 1
+    {
+        "platforms": [
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(150, SCREEN_HEIGHT - 150, 200, 20),
+            Platform(450, SCREEN_HEIGHT - 250, 150, 20),
+            Platform(0, SCREEN_HEIGHT - 350, 100, 20),
+            Platform(600, SCREEN_HEIGHT - 400, 200, 20),
+        ],
+        "enemies": [
+            Enemy(200, SCREEN_HEIGHT - 90),
+            Enemy(500, SCREEN_HEIGHT - 300),
+        ],
+        "collectibles": [
+            Collectible(100, SCREEN_HEIGHT - 70, "health_boost"),
+            Collectible(500, SCREEN_HEIGHT - 70, "score_boost"),
+        ],
+        "boss": None
+    },
+    # Level 2
+    {
+        "platforms": [
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(100, SCREEN_HEIGHT - 120, 150, 20),
+            Platform(300, SCREEN_HEIGHT - 200, 200, 20),
+            Platform(550, SCREEN_HEIGHT - 120, 150, 20),
+            Platform(200, SCREEN_HEIGHT - 300, 100, 20),
+            Platform(400, SCREEN_HEIGHT - 400, 150, 20),
+        ],
+        "enemies": [
+            Enemy(150, SCREEN_HEIGHT - 170),
+            Enemy(400, SCREEN_HEIGHT - 250),
+            Enemy(600, SCREEN_HEIGHT - 170),
+        ],
+        "collectibles": [
+            Collectible(200, SCREEN_HEIGHT - 70, "score_boost"),
+            Collectible(600, SCREEN_HEIGHT - 70, "health_boost"),
+            Collectible(450, SCREEN_HEIGHT - 450, "extra_life"),
+        ],
+        "boss": None
+    },
+    # Level 3 (Boss Level)
+    {
+        "platforms": [
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT - 200, 200, 20),
+            Platform(50, SCREEN_HEIGHT - 350, 100, 20),
+            Platform(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 350, 100, 20),
+        ],
+        "enemies": [], # No normal enemies, only boss
+        "collectibles": [
+            Collectible(100, SCREEN_HEIGHT - 70, "health_boost"),
+            Collectible(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 70, "health_boost"),
+        ],
+        "boss": Enemy(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT - 150, "boss")
+    },
+]
