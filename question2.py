@@ -456,3 +456,36 @@ level_data = [
         "boss": Enemy(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT - 150, "boss")
     },
 ]
+
+# Initialize the game
+def init_game():
+    global player, platforms, enemies, collectibles, score, current_level_index, game_state
+
+    player = Player(50, SCREEN_HEIGHT - 100)
+    score = 0
+    current_level_index = 0
+    load_level(current_level_index)
+    game_state = PLAYING 
+
+def load_level(level_idx):
+    global platforms, enemies, collectibles, player
+    platforms = pygame.sprite.Group()
+    enemies = pygame.sprite.Group()
+    collectibles = pygame.sprite.Group()
+
+    level = level_data[level_idx]
+
+    for platform_obj in level["platforms"]:
+        platforms.add(platform_obj)
+    for enemy_obj in level["enemies"]:
+        enemies.add(enemy_obj)
+    for collectible_obj in level["collectibles"]:
+        collectibles.add(collectible_obj)
+    if level["boss"]:
+        enemies.add(level["boss"]) # Add boss to enemies group
+
+    player.rect.x = 50
+    player.rect.y = SCREEN_HEIGHT - 100
+    player.y_velocity = 0
+    player.is_jumping = False
+
