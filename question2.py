@@ -214,6 +214,23 @@ class Player(pygame.sprite.Sprite):
 
         # Draw projectiles
         self.projectiles.draw(screen)
+        
+
+class Projectile(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction):
+        super().__init__()
+        self.radius = 5
+        self.color = YELLOW
+        self.image = pygame.Surface((self.radius * 2, self.radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, self.color, (self.radius, self.radius), self.radius)
+        self.rect = self.image.get_rect(center=(x, y))
+        self.speed = 10 * direction
+        self.damage = 10
+
+    def update(self):
+        self.rect.x += self.speed
+        if self.rect.right < 0 or self.rect.left > SCREEN_WIDTH:
+            self.kill()
   
 
 
