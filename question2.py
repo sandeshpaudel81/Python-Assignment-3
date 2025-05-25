@@ -233,6 +233,32 @@ class Projectile(pygame.sprite.Sprite):
             self.kill()
   
 
+# Class for the enemy in the game.
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, enemy_type="normal"):
+        super().__init__()
+        self.enemy_type = enemy_type
+        if self.enemy_type == "normal":
+            self.width = 50
+            self.height = 50
+            self.health = 50
+            self.speed = 2
+            self.damage = 20
+            self.color = RED # Enemy body color
+        elif self.enemy_type == "boss":
+            self.width = 100
+            self.height = 100
+            self.health = 300
+            self.speed = 1
+            self.damage = 40
+            self.color = PURPLE 
+        
+        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        self.draw_character(self.image, self.color) 
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.max_health = self.health
+        self.direction = 1 # 1 for right, -1 for left (for patrolling)
+
 
 
     
