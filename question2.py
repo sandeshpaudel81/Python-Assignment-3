@@ -488,4 +488,98 @@ def load_level(level_idx):
     player.rect.y = SCREEN_HEIGHT - 100
     player.y_velocity = 0
     player.is_jumping = False
+    
+    # Handles the quitting of the game
+def show_end_screen(win_state):
+    global game_state
+    SCREEN.fill(BLACK)
+
+    if win_state == GAME_WON:
+        main_text = large_font.render("CONGRATULATIONS!", True, GREEN)
+        sub_text = font.render("You completed all levels!", True, WHITE)
+    else: # GAME_OVER
+        main_text = large_font.render("GAME OVER", True, RED)
+        sub_text = font.render("Better luck next time!", True, WHITE)
+    
+    score_text = font.render(f"Final Score: {score}", True, WHITE)
+    restart_text = font.render("Press 'R' to Restart", True, WHITE)
+    quit_text = font.render("Press 'Q' to Quit", True, WHITE)
+
+
+    main_rect = main_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+    sub_rect = sub_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+    score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
+    restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+    quit_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 140))
+
+
+    SCREEN.blit(main_text, main_rect)
+    SCREEN.blit(sub_text, sub_rect)
+    SCREEN.blit(score_text, score_rect)
+    SCREEN.blit(restart_text, restart_rect)
+    SCREEN.blit(quit_text, quit_rect)
+    pygame.display.flip()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    waiting_for_input = False
+                    init_game() # Restart the game
+                    game_state = PLAYING # Set game state back to playing
+                elif event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+
+# Handles the congratulation after completing level of the game
+def show_level_completed_screen():
+    global game_state, current_level_index
+    SCREEN.fill(BLACK)
+
+    level_completed_text = large_font.render(f"Level {current_level_index} Completed!", True, GREEN)
+    score_text = font.render(f"Score: {score}", True, WHITE)
+
+    level_completed_rect = level_completed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+    score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+
+    SCREEN.blit(level_completed_text, level_completed_rect)
+    SCREEN.blit(score_text, score_rect)
+
+    # Draw Continue Button
+    continue_button_width = 200
+    continue_button_height = 60
+    continue_button_x = (SCREEN_WIDTH - continue_button_width) // 2
+    continue_button_y = SCREEN_HEIGHT // 2 + 80
+    continue_button_rect = pygame.Rect(continue_button_x, continue_button_y, continue_button_width, continue_button_height)
+    
+    pygame.draw.rect(SCREEN, BLUE, continue_button_rect, border_radius=10)
+    pygame.draw.rect(SCREEN, WHITE, continue_button_rect, 3, border_radius=10) # Border
+
+    continue_text = medium_font.render("CONTINUE", True, BLACK)
+    continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
+    SCREEN.blit(continue_text, continue_text_rect)
+
+    pygame.display.flip()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting_for_input = False
+                    load_level(current_level_index)
+                    game_state = PLAYING
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if continue_button_rect.collidepoint(event.pos):
+                    waiting_for_input = False
+                    load_level(current_level_index)
+                    game_state = PLAYING
+
 
