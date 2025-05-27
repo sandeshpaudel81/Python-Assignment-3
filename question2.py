@@ -488,4 +488,305 @@ def load_level(level_idx):
     player.rect.y = SCREEN_HEIGHT - 100
     player.y_velocity = 0
     player.is_jumping = False
+    
+    # Handles the quitting of the game
+def show_end_screen(win_state):
+    global game_state
+    SCREEN.fill(BLACK)
+
+    if win_state == GAME_WON:
+        main_text = large_font.render("CONGRATULATIONS!", True, GREEN)
+        sub_text = font.render("You completed all levels!", True, WHITE)
+    else: # GAME_OVER
+        main_text = large_font.render("GAME OVER", True, RED)
+        sub_text = font.render("Better luck next time!", True, WHITE)
+    
+    score_text = font.render(f"Final Score: {score}", True, WHITE)
+    restart_text = font.render("Press 'R' to Restart", True, WHITE)
+    quit_text = font.render("Press 'Q' to Quit", True, WHITE)
+
+
+    main_rect = main_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+    sub_rect = sub_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+    score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
+    restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
+    quit_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 140))
+
+
+    SCREEN.blit(main_text, main_rect)
+    SCREEN.blit(sub_text, sub_rect)
+    SCREEN.blit(score_text, score_rect)
+    SCREEN.blit(restart_text, restart_rect)
+    SCREEN.blit(quit_text, quit_rect)
+    pygame.display.flip()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    waiting_for_input = False
+                    init_game() # Restart the game
+                    game_state = PLAYING # Set game state back to playing
+                elif event.key == pygame.K_q:
+                    pygame.quit()
+                    sys.exit()
+
+# Handles the congratulation after completing level of the game
+def show_level_completed_screen():
+    global game_state, current_level_index
+    SCREEN.fill(BLACK)
+
+    level_completed_text = large_font.render(f"Level {current_level_index} Completed!", True, GREEN)
+    score_text = font.render(f"Score: {score}", True, WHITE)
+
+    level_completed_rect = level_completed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
+    score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
+
+    SCREEN.blit(level_completed_text, level_completed_rect)
+    SCREEN.blit(score_text, score_rect)
+
+    # Draw Continue Button
+    continue_button_width = 200
+    continue_button_height = 60
+    continue_button_x = (SCREEN_WIDTH - continue_button_width) // 2
+    continue_button_y = SCREEN_HEIGHT // 2 + 80
+    continue_button_rect = pygame.Rect(continue_button_x, continue_button_y, continue_button_width, continue_button_height)
+    
+    pygame.draw.rect(SCREEN, BLUE, continue_button_rect, border_radius=10)
+    pygame.draw.rect(SCREEN, WHITE, continue_button_rect, 3, border_radius=10) # Border
+
+    continue_text = medium_font.render("CONTINUE", True, BLACK)
+    continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
+    SCREEN.blit(continue_text, continue_text_rect)
+
+    pygame.display.flip()
+
+    waiting_for_input = True
+    while waiting_for_input:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting_for_input = False
+                    load_level(current_level_index)
+                    game_state = PLAYING
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if continue_button_rect.collidepoint(event.pos):
+                    waiting_for_input = False
+                    load_level(current_level_index)
+                    game_state = PLAYING
+
+
+def game_loop():
+    global game_state, score, current_level_index
+
+    clock = pygame.time.Clock()
+    running = True
+
+    start_button_width = 200
+    start_button_height = 60
+    start_button_x = (SCREEN_WIDTH - start_button_width) // 2
+    start_button_y = SCREEN_HEIGHT // 2 + 180
+    start_button_rect = pygame.Rect(start_button_x, start_button_y, start_button_width, start_button_height)
+
+    menu_player_display = Player(SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2 - 80)
+    menu_player_display.draw_character(menu_player_display.image, BLUE)
+
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.K_ESCAPE: 
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if game_state == PLAYING:
+                    if event.key == pygame.K_LEFT:
+                        pass 
+                    if event.key == pygame.K_RIGHT:
+                        pass
+                    if event.key == pygame.K_SPACE:
+                        player.jump()
+                    if event.key == pygame.K_f: # 'F' for Fire
+                        player.shoot()
+                elif game_state == MENU:
+                    if event.key == pygame.K_RETURN: # Enter to start
+                        init_game() 
+                elif game_state == GAME_OVER or game_state == GAME_WON: 
+                    if event.key == pygame.K_r:
+                        init_game()
+                        game_state = PLAYING
+                    elif event.key == pygame.K_q:
+                        running = False 
+                elif game_state == LEVEL_COMPLETED:
+                    if event.key == pygame.K_RETURN: 
+                        load_level(current_level_index)
+                        game_state = PLAYING
+            
+          
+            if game_state == MENU and event.type == pygame.MOUSEBUTTONDOWN:
+                if start_button_rect.collidepoint(event.pos):
+                    init_game()
+
+        if game_state == MENU:
+            SCREEN.fill(BLACK)
+            title_text = large_font.render("The Jumper's Journey", True, WHITE)
+            title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 200))
+            SCREEN.blit(title_text, title_rect)
+
+            # Display Instructions
+            instructions = [
+                "To Start the Game: Click 'Start' or Press ENTER",
+                "To Move Left: Press the LEFT ARROW key",
+                "To Move Right: Press the RIGHT ARROW key",
+                "To Jump: Press the SPACEBAR",
+                "To Shoot: Press the F key",
+                "To Restart (Game Over/Won): Press the R key",
+                "To Quit (Game Over/Won): Press the Q key"
+            ]
+            y_offset = -120
+            for instruction in instructions:
+                inst_text = font.render(instruction, True, WHITE)
+                inst_rect = inst_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + y_offset))
+                SCREEN.blit(inst_text, inst_rect)
+                y_offset += 30
+
+            # Draw Start Button
+            pygame.draw.rect(SCREEN, GREEN, start_button_rect, border_radius=10)
+            pygame.draw.rect(SCREEN, WHITE, start_button_rect, 3, border_radius=10) # Border
+
+            start_text = medium_font.render("START GAME", True, BLACK)
+            start_text_rect = start_text.get_rect(center=start_button_rect.center)
+            SCREEN.blit(start_text, start_text_rect)    
+
+            pygame.display.flip()
+
+        elif game_state == PLAYING:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT]:
+                player.move(-1)
+            if keys[pygame.K_RIGHT]:
+                player.move(1)
+
+            player.update(platforms)
+            enemies.update(platforms)
+
+            for enemy in pygame.sprite.spritecollide(player, enemies, False):
+                if player.invincible_timer == 0:
+                    if player.take_damage(enemy.damage):
+                        
+                        if player.lives <= 0:
+                            game_state = GAME_OVER
+                        else:
+                            load_level(current_level_index) 
+                        break 
+
+            for projectile in player.projectiles:
+                hit_enemies = pygame.sprite.spritecollide(projectile, enemies, False)
+                for enemy in hit_enemies:
+                    projectile.kill() 
+                    if enemy.take_damage(projectile.damage):
+                        score += 100 
+                        enemy.kill()
+                        if enemy.enemy_type == "boss":
+                          
+                            current_level_index += 1
+                            if current_level_index < len(level_data):
+                                game_state = LEVEL_COMPLETED 
+                            else:
+                                game_state = GAME_WON # Set to GAME_WON state
+                                break
+                if game_state == GAME_WON or game_state == LEVEL_COMPLETED: 
+                    break 
+
+            if game_state == GAME_WON or game_state == GAME_OVER or game_state == LEVEL_COMPLETED:
+                continue       
+            for collectible in pygame.sprite.spritecollide(player, collectibles, True): # True to remove collectible
+                if collectible.collectible_type == "health_boost":
+                    player.health = min(player.max_health, player.health + collectible.value)
+                    score += 20
+                elif collectible.collectible_type == "extra_life":
+                    player.lives += collectible.value
+                    score += 50
+                elif collectible.collectible_type == "score_boost":
+                    score += collectible.value
+
+    
+            level_completed_this_frame = False
+            if current_level_index < len(level_data): 
+                if not enemies: 
+                    if level_data[current_level_index]["boss"] is not None:
+                        level_completed_this_frame = True
+                    else:
+                        level_completed_this_frame = True
+            
+            if level_completed_this_frame:
+                current_level_index += 1
+                if current_level_index < len(level_data):
+                    game_state = LEVEL_COMPLETED 
+                else:
+                    game_state = GAME_WON
+                continue 
+
+
+            SCREEN.fill(BLACK) # Clear screen
+
+            platforms.draw(SCREEN)
+            collectibles.draw(SCREEN)
+            enemies.draw(SCREEN)
+            player.draw(SCREEN)
+
+
+            # Display UI
+            score_text = font.render(f"Score: {score}", True, WHITE)
+            health_text = font.render(f"Health: {player.health}", True, WHITE)
+            lives_text = font.render(f"Lives: {player.lives}", True, WHITE)
+            level_text = font.render(f"Level: {current_level_index + 1}", True, WHITE)
+
+            SCREEN.blit(score_text, (10, 10))
+            SCREEN.blit(health_text, (10, 40))
+            SCREEN.blit(lives_text, (10, 70))
+            SCREEN.blit(level_text, (SCREEN_WIDTH - level_text.get_width() - 10, 10))
+
+            pygame.display.flip()
+
+            
+            if player.rect.top > SCREEN_HEIGHT:
+                if player.take_damage(player.max_health): 
+                    if player.lives <= 0:
+                        game_state = GAME_OVER
+                    else:
+                        load_level(current_level_index) 
+                if game_state == GAME_OVER:
+                    continue
+
+            
+            if player.lives <= 0:
+                game_state = GAME_OVER
+               
+                continue 
+
+
+        elif game_state == GAME_OVER:
+            show_end_screen(GAME_OVER) 
+        elif game_state == GAME_WON:
+            show_end_screen(GAME_WON) 
+        elif game_state == LEVEL_COMPLETED:
+            show_level_completed_screen()
+
+
+        clock.tick(60) 
+    pygame.quit()
+    sys.exit()
+    
+
+if __name__ == "__main__":
+    game_loop()
+
 
