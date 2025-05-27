@@ -3,7 +3,7 @@ import numpy as np
 from tkinter import Tk, Label, Button, Scale, filedialog, Frame, HORIZONTAL
 from PIL import Image, ImageTk
 
-
+# This is the class for the image editor app
 class ImageEditorApp:
     def __init__(self, root):
         self.root = root
@@ -40,6 +40,7 @@ class ImageEditorApp:
         self.original_label.bind("<B1-Motion>", self.do_resize)
         self.original_label.bind("<ButtonRelease-1>", self.end_resize)
 
+#Loading the image file from the local device
     def load_image(self):
         path = filedialog.askopenfilename()
         if not path:
@@ -54,7 +55,7 @@ class ImageEditorApp:
         self.crop_rect = [x1, y1, x1 + crop_w, y1 + crop_h]
 
         self.update_display()
-
+#Diaplaying the image
     def display_image(self, image, label, max_size=(500, 500)):
         image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         pil_img = Image.fromarray(image_rgb)
@@ -193,7 +194,7 @@ class ImageEditorApp:
             cv2.imwrite(path, self.resized_image)
             print("Image saved to:", path)
 
-
+#Run the application
 if __name__ == "__main__":
     root = Tk()
     app = ImageEditorApp(root)
