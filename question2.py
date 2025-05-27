@@ -636,7 +636,7 @@ def game_loop():
 
         if game_state == MENU:
             SCREEN.fill(BLACK)
-            title_text = large_font.render("Side-Scrolling Adventure", True, WHITE)
+            title_text = large_font.render("The Jumper's Journey", True, WHITE)
             title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 200))
             SCREEN.blit(title_text, title_rect)
 
@@ -782,4 +782,11 @@ def game_loop():
 
 
         clock.tick(60) 
+    pygame.quit()
+    sys.exit()
+    
+
+if __name__ == "__main__":
+    game_loop()
+
 
