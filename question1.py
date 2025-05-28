@@ -1,13 +1,20 @@
 import cv2
 import numpy as np
-from tkinter import Tk, Label, Button, Scale, filedialog, Frame, HORIZONTAL
+from tkinter import Tk, Label, Button, Scale, filedialog, Frame, HORIZONTAL, Text
 from PIL import Image, ImageTk
 
 # GUI-based Image Crop and Resize Editor using OpenCV, Tkinter, and PIL
 class ImageEditorApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Image Crop Resizer")  # Set window title
+        self.root.title("Image Editor")  # Set window title
+
+        # Application Header
+        self.header = Label(root, text="Image Editor", font=("Helvetica", 16, "bold"))
+        self.header.pack(pady=10)
+
+        self.application_message_label = Label(root, text="", font=("Helvetica", 12))
+        self.application_message_label.pack(pady=2)
 
         # Main container for original and cropped images
         self.frame = Frame(root)
@@ -18,23 +25,42 @@ class ImageEditorApp:
         self.original_label.grid(row=0, column=0)
 
         # Label to show the cropped/preview image
-        self.cropped_label = Label(self.frame)
-        self.cropped_label.grid(row=0, column=1)
+        self.preview_frame = Frame(self.frame, width=300, height=300)
+        self.preview_frame.grid(row=0, column=1)
+        self.preview_frame.pack_propagate(False)  # Prevent frame from shrinking to image
 
-        # Buttons for loading and saving images
-        Button(root, text="Load Image", command=self.load_image).pack()
-        Button(root, text="Save Cropped Image", command=self.save_image).pack()
+        self.cropped_label = Label(self.preview_frame, bg="gray")
+        self.cropped_label.pack(expand=True, fill="both")
+
+        button_frame = Frame(root)
+        button_frame.pack(pady=10)
+
+        # Buttons side by side in the button_frame using grid
+        Button(button_frame, text="Load Image", command=self.load_image).grid(row=0, column=0, padx=10)
+        Button(button_frame, text="Save Cropped Image", command=self.save_image).grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
-        self.resize_slider = Scale(root, from_=10, to=200, orient=HORIZONTAL,
-                                   label="Resize %", command=self.resize_image)
+        slider_frame = Frame(root)
+        slider_frame.pack(pady=5)
+
+        self.resize_slider = Scale(slider_frame, from_=10, to=200, orient=HORIZONTAL,
+                                label="Resize %", command=self.resize_image, length=300)
         self.resize_slider.pack()
         self.resize_slider.set(100)  # Default to 100% (no resize)
 
+        self.cropped_shape_label = Label(root, text="Cropped Image: x x x", font=("Helvetica", 12))
+        self.cropped_shape_label.pack(pady=2)
+
+        self.resized_shape_label = Label(root, text="Resized Image: x x x", font=("Helvetica", 12))
+        self.resized_shape_label.pack()
+
         # Initialize state variables
         self.image = None  # Full loaded image
-        self.cropped_image = None  # Cropped region from full image
+        self.imageShape = None
+        self.cropped_image = None # Cropped region from full image
+          
         self.resized_image = None  # Cropped image after resizing
+        
         self.crop_rect = None  # Coordinates of crop rectangle [x1, y1, x2, y2]
         self.drag_mode = None  # Mode used while dragging to resize crop area
         self.drag_start = (0, 0)  # Initial mouse position during dragging
@@ -59,7 +85,7 @@ class ImageEditorApp:
         crop_w, crop_h = w // 2, h // 2
         x1, y1 = (w - crop_w) // 2, (h - crop_h) // 2
         self.crop_rect = [x1, y1, x1 + crop_w, y1 + crop_h]
-
+        self.application_message_label.config(text="")
         self.update_display()
 
     # Display an image in a given label, resizing it to fit max dimensions
@@ -102,6 +128,8 @@ class ImageEditorApp:
         self.cropped_image = self.image[y1:y2, x1:x2]
         self.resized_image = self.cropped_image.copy()
         self.display_image(self.resized_image, self.cropped_label, max_size=(300, 300))
+        h, w = self.cropped_image.shape[:2]
+        self.cropped_shape_label.config(text=f"Cropped Image: {w} × {h}")
 
     # Convert mouse coordinates on label to image coordinates
     def get_mouse_image_coords(self, event):
@@ -195,8 +223,10 @@ class ImageEditorApp:
         scale = int(value)
         width = int(self.cropped_image.shape[1] * scale / 100)
         height = int(self.cropped_image.shape[0] * scale / 100)
+        self.resizedImageShape = str(width) + ' x ' + str(height)
         self.resized_image = cv2.resize(self.cropped_image, (width, height))
         self.display_image(self.resized_image, self.cropped_label)
+        self.resized_shape_label.config(text=f"Resized Image: {width} × {height}")
 
     # Save the resized image using file dialog
     def save_image(self):
@@ -207,9 +237,11 @@ class ImageEditorApp:
         if path:
             cv2.imwrite(path, self.resized_image)
             print("Image saved to:", path)
+            self.application_message_label.config(text=f"Image saved to: {path}", fg='green')
 
 # Launch the GUI application
 if __name__ == "__main__":
     root = Tk()
+    root.minsize(width=600, height=450)
     app = ImageEditorApp(root)
     root.mainloop()
