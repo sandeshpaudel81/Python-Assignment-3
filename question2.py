@@ -543,50 +543,62 @@ def init_game():
 
 def load_level(level_idx):
     global platforms, enemies, collectibles, player
+    # Initialize new empty sprite groups for platforms, enemies, and collectibles
     platforms = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     collectibles = pygame.sprite.Group()
 
+    # Get the current level data from level_data list using the index
     level = level_data[level_idx]
 
+    # Add all platform objects from the level to the platforms group
     for platform_obj in level["platforms"]:
         platforms.add(platform_obj)
+    # Add all enemy objects from the level to the enemies group
     for enemy_obj in level["enemies"]:
         enemies.add(enemy_obj)
+    # Add all collectible objects from the level to the collectibles group
     for collectible_obj in level["collectibles"]:
         collectibles.add(collectible_obj)
+    # If the level has a boss, add it to the enemies group
     if level["boss"]:
-        enemies.add(level["boss"]) # Add boss to enemies group
+        enemies.add(level["boss"])  # Add boss to enemies group
 
+    # Reset player position near the bottom left of the screen
     player.rect.x = 50
     player.rect.y = SCREEN_HEIGHT - 100
+    # Reset player vertical velocity and jumping state
     player.y_velocity = 0
     player.is_jumping = False
     
-    # Handles the quitting of the game
+
+# Handles the quitting of the game and displays the end screen
 def show_end_screen(win_state):
     global game_state
+    # Clear screen with black background
     SCREEN.fill(BLACK)
 
+    # Choose messages based on whether the player won or lost
     if win_state == GAME_WON:
         main_text = large_font.render("CONGRATULATIONS!", True, GREEN)
         sub_text = font.render("You completed all levels!", True, WHITE)
-    else: # GAME_OVER
+    else:  # GAME_OVER
         main_text = large_font.render("GAME OVER", True, RED)
         sub_text = font.render("Better luck next time!", True, WHITE)
     
+    # Render final score and instructions to restart or quit
     score_text = font.render(f"Final Score: {score}", True, WHITE)
     restart_text = font.render("Press 'R' to Restart", True, WHITE)
     quit_text = font.render("Press 'Q' to Quit", True, WHITE)
 
-
+    # Get rectangles for centering all text on the screen
     main_rect = main_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
     sub_rect = sub_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
     score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 40))
     restart_rect = restart_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 100))
     quit_rect = quit_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 140))
 
-
+    # Draw all text to the screen
     SCREEN.blit(main_text, main_rect)
     SCREEN.blit(sub_text, sub_rect)
     SCREEN.blit(score_text, score_rect)
@@ -594,6 +606,7 @@ def show_end_screen(win_state):
     SCREEN.blit(quit_text, quit_rect)
     pygame.display.flip()
 
+    # Wait for player input to either restart or quit the game
     waiting_for_input = True
     while waiting_for_input:
         for event in pygame.event.get():
@@ -602,43 +615,52 @@ def show_end_screen(win_state):
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
+                    # Restart game when 'R' is pressed
                     waiting_for_input = False
-                    init_game() # Restart the game
-                    game_state = PLAYING # Set game state back to playing
+                    init_game()  # Reset game variables and state
+                    game_state = PLAYING  # Set game state back to playing
                 elif event.key == pygame.K_q:
+                    # Quit game when 'Q' is pressed
                     pygame.quit()
                     sys.exit()
 
-# Handles the congratulation after completing level of the game
+# Handles the congratulation screen after completing a level
 def show_level_completed_screen():
     global game_state, current_level_index
+    # Clear screen with black background
     SCREEN.fill(BLACK)
 
+    # Render level completed message and current score
     level_completed_text = large_font.render(f"Level {current_level_index} Completed!", True, GREEN)
     score_text = font.render(f"Score: {score}", True, WHITE)
 
+    # Get rectangles to center the texts
     level_completed_rect = level_completed_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 80))
     score_rect = score_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 20))
 
+    # Draw the texts on the screen
     SCREEN.blit(level_completed_text, level_completed_rect)
     SCREEN.blit(score_text, score_rect)
 
-    # Draw Continue Button
+    # Draw Continue Button parameters and rectangle
     continue_button_width = 200
     continue_button_height = 60
     continue_button_x = (SCREEN_WIDTH - continue_button_width) // 2
     continue_button_y = SCREEN_HEIGHT // 2 + 80
     continue_button_rect = pygame.Rect(continue_button_x, continue_button_y, continue_button_width, continue_button_height)
     
+    # Draw the continue button background and border
     pygame.draw.rect(SCREEN, BLUE, continue_button_rect, border_radius=10)
-    pygame.draw.rect(SCREEN, WHITE, continue_button_rect, 3, border_radius=10) # Border
+    pygame.draw.rect(SCREEN, WHITE, continue_button_rect, 3, border_radius=10)  # Border
 
+    # Render continue button text and center it inside the button
     continue_text = medium_font.render("CONTINUE", True, BLACK)
     continue_text_rect = continue_text.get_rect(center=continue_button_rect.center)
     SCREEN.blit(continue_text, continue_text_rect)
 
     pygame.display.flip()
 
+    # Wait for player input (enter key or mouse click on button) to continue
     waiting_for_input = True
     while waiting_for_input:
         for event in pygame.event.get():
@@ -647,14 +669,17 @@ def show_level_completed_screen():
                 sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
+                    # Continue to next level when Enter is pressed
                     waiting_for_input = False
                     load_level(current_level_index)
                     game_state = PLAYING
             if event.type == pygame.MOUSEBUTTONDOWN:
+                # Continue to next level when continue button is clicked
                 if continue_button_rect.collidepoint(event.pos):
                     waiting_for_input = False
                     load_level(current_level_index)
                     game_state = PLAYING
+
 
 
 def game_loop():
