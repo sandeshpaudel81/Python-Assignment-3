@@ -287,77 +287,93 @@ class Enemy(pygame.sprite.Sprite):
         self.direction = 1
 
         
-    def draw_character(self, surface, body_color):
-        """Draws a human-like enemy onto the given surface with more detail."""
-        surface.fill((0, 0, 0, 0))
+def draw_character(self, surface, body_color):
+    """Draws a human-like enemy onto the given surface with more detail."""
+    
+    # Clear the surface with full transparency
+    surface.fill((0, 0, 0, 0))
 
-       # Draw head circular shape
-        head_radius = self.width // 3
-        head_center_x = self.width // 2
-        head_center_y = head_radius + 2
-        pygame.draw.circle(surface, GRAY, (head_center_x, head_center_y), head_radius) # Enemy head color
+    # === HEAD ===
+    head_radius = self.width // 3
+    head_center_x = self.width // 2
+    head_center_y = head_radius + 2
+    # Draw the enemy's head as a gray circle
+    pygame.draw.circle(surface, GRAY, (head_center_x, head_center_y), head_radius)
 
-        # Neck 
-        neck_width = self.width * 0.2
-        neck_height = self.height * 0.05
-        neck_x = (self.width - neck_width) // 2
-        neck_y = head_center_y + head_radius - 2
-        pygame.draw.rect(surface, GRAY, (neck_x, neck_y, neck_width, neck_height))
+    # === NECK ===
+    neck_width = self.width * 0.2
+    neck_height = self.height * 0.05
+    neck_x = (self.width - neck_width) // 2
+    neck_y = head_center_y + head_radius - 2
+    # Draw the neck as a small gray rectangle below the head
+    pygame.draw.rect(surface, GRAY, (neck_x, neck_y, neck_width, neck_height))
 
-        torso_width = self.width * 0.7
-        torso_height = self.height * 0.3
-        torso_x = (self.width - torso_width) // 2
-        torso_y = neck_y + neck_height
-        pygame.draw.rect(surface, body_color, (torso_x, torso_y, torso_width, torso_height))
+    # === TORSO ===
+    torso_width = self.width * 0.7
+    torso_height = self.height * 0.3
+    torso_x = (self.width - torso_width) // 2
+    torso_y = neck_y + neck_height
+    # Draw the torso with the enemy's body color
+    pygame.draw.rect(surface, body_color, (torso_x, torso_y, torso_width, torso_height))
 
-        # Arms
-        arm_width = self.width * 0.15
-        arm_height = self.height * 0.3
-        arm_y = torso_y + 5
-        
-        # Left arm
-        pygame.draw.rect(surface, body_color, (torso_x - arm_width, arm_y, arm_width, arm_height))
-        # Right arm
-        pygame.draw.rect(surface, body_color, (torso_x + torso_width, arm_y, arm_width, arm_height))
+    # === ARMS ===
+    arm_width = self.width * 0.15
+    arm_height = self.height * 0.3
+    arm_y = torso_y + 5
+    # Left arm
+    pygame.draw.rect(surface, body_color, (torso_x - arm_width, arm_y, arm_width, arm_height))
+    # Right arm
+    pygame.draw.rect(surface, body_color, (torso_x + torso_width, arm_y, arm_width, arm_height))
 
-        # Hands (small circles)
-        hand_radius = 4
-        pygame.draw.circle(surface, GRAY, (torso_x - arm_width + arm_width // 2, arm_y + arm_height), hand_radius)
-        pygame.draw.circle(surface, GRAY, (torso_x + torso_width + arm_width // 2, arm_y + arm_height), hand_radius)
+    # === HANDS ===
+    hand_radius = 4
+    # Left hand as a small gray circle
+    pygame.draw.circle(surface, GRAY, (torso_x - arm_width + arm_width // 2, arm_y + arm_height), hand_radius)
+    # Right hand
+    pygame.draw.circle(surface, GRAY, (torso_x + torso_width + arm_width // 2, arm_y + arm_height), hand_radius)
 
-        # Hips
-        pelvis_width = self.width * 0.8
-        pelvis_height = self.height * 0.1
-        pelvis_x = (self.width - pelvis_width) // 2
-        pelvis_y = torso_y + torso_height
-        pygame.draw.rect(surface, body_color, (pelvis_x, pelvis_y, pelvis_width, pelvis_height))
+    # === PELVIS / HIPS ===
+    pelvis_width = self.width * 0.8
+    pelvis_height = self.height * 0.1
+    pelvis_x = (self.width - pelvis_width) // 2
+    pelvis_y = torso_y + torso_height
+    # Draw pelvis below the torso
+    pygame.draw.rect(surface, body_color, (pelvis_x, pelvis_y, pelvis_width, pelvis_height))
 
-        # Legs (two rectangles for thighs and shins)
-        leg_segment_width = pelvis_width // 2 - 4
-        leg_segment_height = self.height * 0.2
-        
-        # Left thigh
-        thigh_y = pelvis_y + pelvis_height
-        pygame.draw.rect(surface, body_color, (pelvis_x, thigh_y, leg_segment_width, leg_segment_height))
-        # Right thigh - FIX: Changed 'pelvel_x' to 'pelvis_x'
-        pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, thigh_y, leg_segment_width, leg_segment_height))
+    # === LEGS ===
+    leg_segment_width = pelvis_width // 2 - 4
+    leg_segment_height = self.height * 0.2
+    thigh_y = pelvis_y + pelvis_height
+    shin_y = thigh_y + leg_segment_height
 
-        # Left shin
-        shin_y = thigh_y + leg_segment_height
-        pygame.draw.rect(surface, body_color, (pelvis_x, shin_y, leg_segment_width, leg_segment_height))
-        # Right shin
-        pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, shin_y, leg_segment_width, leg_segment_height))
+    # Left thigh
+    pygame.draw.rect(surface, body_color, (pelvis_x, thigh_y, leg_segment_width, leg_segment_height))
+    # Right thigh
+    pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, thigh_y, leg_segment_width, leg_segment_height))
 
-        # Feet 
-        foot_width = leg_segment_width + 2
-        foot_height = 5
-        foot_y = shin_y + leg_segment_height
-        pygame.draw.rect(surface, BLACK, (pelvis_x, foot_y, foot_width, foot_height))
-        pygame.draw.rect(surface, BLACK, (pelvis_x + pelvis_width - foot_width, foot_y, foot_width, foot_height))
+    # Left shin
+    pygame.draw.rect(surface, body_color, (pelvis_x, shin_y, leg_segment_width, leg_segment_height))
+    # Right shin
+    pygame.draw.rect(surface, body_color, (pelvis_x + pelvis_width - leg_segment_width, shin_y, leg_segment_width, leg_segment_height))
 
-        # Face details
-        pygame.draw.line(surface, BLACK, (head_center_x - head_radius // 3, head_center_y - head_radius // 4), (head_center_x + head_radius // 3, head_center_y - head_radius // 4), 2) # Frowning eyes
-        pygame.draw.line(surface, BLACK, (head_center_x - head_radius // 3, head_center_y + head_radius // 4), (head_center_x + head_radius // 3, head_center_y + head_radius // 4), 1) # Simple mouth
+    # === FEET ===
+    foot_width = leg_segment_width + 2
+    foot_height = 5
+    foot_y = shin_y + leg_segment_height
+    # Left foot in black
+    pygame.draw.rect(surface, BLACK, (pelvis_x, foot_y, foot_width, foot_height))
+    # Right foot in black
+    pygame.draw.rect(surface, BLACK, (pelvis_x + pelvis_width - foot_width, foot_y, foot_width, foot_height))
+
+    # === FACE ===
+    # Draw a frowning expression: angry eyes
+    pygame.draw.line(surface, BLACK, 
+                     (head_center_x - head_radius // 3, head_center_y - head_radius // 4), 
+                     (head_center_x + head_radius // 3, head_center_y - head_radius // 4), 2)
+    # Simple mouth line
+    pygame.draw.line(surface, BLACK, 
+                     (head_center_x - head_radius // 3, head_center_y + head_radius // 4), 
+                     (head_center_x + head_radius // 3, head_center_y + head_radius // 4), 1)
 
 
     def update(self, platforms):
