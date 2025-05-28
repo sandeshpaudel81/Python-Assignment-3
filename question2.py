@@ -376,67 +376,96 @@ def draw_character(self, surface, body_color):
                      (head_center_x + head_radius // 3, head_center_y + head_radius // 4), 1)
 
 
-    def update(self, platforms):
-        self.rect.x += self.speed * self.direction
-        
-        # Check if enemy hits screen edges or platform edges
-        if self.rect.left < 0 or self.rect.right > SCREEN_WIDTH:
-            self.direction *= -1 # Change direction
-            self.rect.x += self.speed * self.direction * 2 # Move a bit to avoid sticking
+def update(self, platforms):
+    # Move enemy horizontally based on its speed and direction
+    self.rect.x += self.speed * self.direction
 
-        self.rect.y += 2 
-        for platform in platforms:
-            if self.rect.colliderect(platform.rect):
-                if self.rect.bottom > platform.rect.top and self.rect.top < platform.rect.top:
-                    self.rect.bottom = platform.rect.top
-        
-        if self.rect.top > SCREEN_HEIGHT:
-            self.kill()
+    # Reverse direction if the enemy hits the screen edges
+    if self.rect.left < 0 or self.rect.right > SCREEN_WIDTH:
+        self.direction *= -1  # Flip direction
+        self.rect.x += self.speed * self.direction * 2  # Push slightly away from the edge to avoid sticking
 
+    # Simulate gravity by moving the enemy down slightly
+    self.rect.y += 2
 
-    def take_damage(self, damage):
-        self.health -= damage
-        if self.health <= 0:
-            return True 
-        return False
+    # Collision detection with platforms
+    for platform in platforms:
+        if self.rect.colliderect(platform.rect):
+            # If falling from above, snap the enemy to stand on the platform
+            if self.rect.bottom > platform.rect.top and self.rect.top < platform.rect.top:
+                self.rect.bottom = platform.rect.top
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-        # Draw health bar for enemy
-        health_bar_width = self.rect.width
-        health_bar_height = 5
-        health_bar_x = self.rect.x
-        health_bar_y = self.rect.y - 10
-        pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
-        current_health_width = (self.health / self.max_health) * health_bar_width
-        pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
+    # If the enemy falls off the screen (below screen height), remove it from the game
+    if self.rect.top > SCREEN_HEIGHT:
+        self.kill()
 
 
+def take_damage(self, damage):
+    # Reduce enemy's health by the specified damage amount
+    self.health -= damage
+
+    # Return True if enemy is defeated
+    if self.health <= 0:
+        return True
+    return False
+
+
+def draw(self, screen):
+    # Draw the enemy's sprite on the screen
+    screen.blit(self.image, self.rect)
+
+    # === HEALTH BAR ===
+    health_bar_width = self.rect.width
+    health_bar_height = 5
+    health_bar_x = self.rect.x
+    health_bar_y = self.rect.y - 10  # Slightly above the enemy sprite
+
+    # Draw red background for total health
+    pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
+
+    # Draw green foreground proportional to current health
+    current_health_width = (self.health / self.max_health) * health_bar_width
+    pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
+
+
+# Class for collectible items (health boost, extra life, score boost)
 class Collectible(pygame.sprite.Sprite):
     def __init__(self, x, y, collectible_type):
         super().__init__()
-        self.collectible_type = collectible_type
+        self.collectible_type = collectible_type  # Type of collectible (e.g., health_boost)
+
+        # Create a square surface for the collectible
         self.image = pygame.Surface((30, 30))
+
+        # Assign color and value based on the type of collectible
         if self.collectible_type == "health_boost":
-            self.image.fill(GREEN)
-            self.value = 25 # Health restored
+            self.image.fill(GREEN)  # Green indicates health
+            self.value = 25         # Amount of health to restore
         elif self.collectible_type == "extra_life":
-            self.image.fill(ORANGE)
-            self.value = 1 # Extra life
+            self.image.fill(ORANGE) # Orange indicates extra life
+            self.value = 1          # One extra life
         elif self.collectible_type == "score_boost":
-            self.image.fill(YELLOW)
-            self.value = 50 # Score added
+            self.image.fill(YELLOW) # Yellow indicates score bonus
+            self.value = 50         # Score points to add
+
+        # Position the collectible on the screen
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
+        # Draw the collectible item to the screen
         screen.blit(self.image, self.rect)
 
-# Class for platform
+
+# Class for static platforms that the player/enemies can stand on
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width, height):
         super().__init__()
+        
+        # Create a surface with the given width and height
         self.image = pygame.Surface((width, height))
-        self.image.fill(BROWN)
+        self.image.fill(BROWN)  # Fill it with a brown color to represent ground/platform
+
+        # Position the platform on the screen
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def draw(self, screen):
