@@ -256,26 +256,36 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self, x, y, enemy_type="normal"):
         super().__init__()
         self.enemy_type = enemy_type
+
+        # Initialize attributes based on enemy type
         if self.enemy_type == "normal":
-            self.width = 50
-            self.height = 50
-            self.health = 50
-            self.speed = 2
-            self.damage = 20
-            self.color = RED # Enemy body color
+            self.width = 50               # Normal enemy width
+            self.height = 50              # Normal enemy height
+            self.health = 50              # Normal enemy health
+            self.speed = 2                # Normal movement speed
+            self.damage = 20              # Damage dealt by normal enemy
+            self.color = RED              # Body color for normal enemy
         elif self.enemy_type == "boss":
-            self.width = 100
+            self.width = 100              # Boss enemy is larger
             self.height = 100
-            self.health = 300
-            self.speed = 1
-            self.damage = 40
-            self.color = PURPLE 
+            self.health = 300             # Boss has higher health
+            self.speed = 1                # Boss moves slower
+            self.damage = 40              # Boss deals more damage
+            self.color = PURPLE           # Body color for boss enemy
         
+        # Create a transparent surface and draw the enemy character onto it
         self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        self.draw_character(self.image, self.color) 
+        self.draw_character(self.image, self.color)
+
+        # Set the enemy’s position using a rect (for collision and positioning)
         self.rect = self.image.get_rect(topleft=(x, y))
+
+        # Store max health to use for health bar calculations (if needed)
         self.max_health = self.health
-        self.direction = 1 # 1 for right, -1 for left (for patrolling)
+
+        # Direction for horizontal patrol: 1 for right, -1 for left
+        self.direction = 1
+
         
     def draw_character(self, surface, body_color):
         """Draws a human-like enemy onto the given surface with more detail."""
