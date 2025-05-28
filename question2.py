@@ -203,27 +203,36 @@ class Player(pygame.sprite.Sprite):
                     return True # Player is dead
         return False # Player is not dead
 
-    def draw(self, screen):
-        if self.invincible_timer > 0 and (self.invincible_timer // 10) % 2 == 0:
-            # Create a flashing image by drawing a red version
-            flashing_image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            self.draw_character(flashing_image, RED) # Use RED for flashing
-            screen.blit(flashing_image, self.rect)
-        else:
-            screen.blit(self.image, self.rect)
-        
-        # Draw health bar
-        health_bar_width = self.rect.width
-        health_bar_height = 5
-        health_bar_x = self.rect.x
-        health_bar_y = self.rect.y - 10
-        pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
-        current_health_width = (self.health / self.max_health) * health_bar_width
-        pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
+def draw(self, screen):
+    # If the player is currently invincible, create a flashing effect by rendering a red silhouette every alternate frame
+    if self.invincible_timer > 0 and (self.invincible_timer // 10) % 2 == 0:
+        # Create a transparent surface the same size as the player for the flashing effect
+        flashing_image = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        # Draw the character using RED to indicate invincibility
+        self.draw_character(flashing_image, RED)
+        # Blit the flashing (red) image to the screen at the player's position
+        screen.blit(flashing_image, self.rect)
+    else:
+        # If not invincible (or not in flashing frame), draw the normal character sprite
+        screen.blit(self.image, self.rect)
+    
+    # -------- Draw Health Bar --------
+    health_bar_width = self.rect.width  # Full width matches the character's width
+    health_bar_height = 5               # Fixed height of health bar
+    health_bar_x = self.rect.x          # Align health bar horizontally with character
+    health_bar_y = self.rect.y - 10     # Position slightly above the character
 
-        # Draw projectiles
-        self.projectiles.draw(screen)
-        
+    # Draw the red background (total health)
+    pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
+
+    # Calculate and draw the green foreground (current health proportion)
+    current_health_width = (self.health / self.max_health) * health_bar_width
+    pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
+
+    # -------- Draw Player's Projectiles --------
+    # Draw all active projectiles currently held in the player's projectile group
+    self.projectiles.draw(screen)
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
