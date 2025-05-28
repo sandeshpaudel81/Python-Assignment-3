@@ -468,33 +468,32 @@ class Platform(pygame.sprite.Sprite):
         # Position the platform on the screen
         self.rect = self.image.get_rect(topleft=(x, y))
 
-    def draw(self, screen):
-        screen.blit(self.image, self.rect)
-        
+# Level configurations containing platforms, enemies, collectibles, and optional boss
 level_data = [
     # Level 1
     {
         "platforms": [
-            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40),  # Ground platform
             Platform(150, SCREEN_HEIGHT - 150, 200, 20),
             Platform(450, SCREEN_HEIGHT - 250, 150, 20),
             Platform(0, SCREEN_HEIGHT - 350, 100, 20),
             Platform(600, SCREEN_HEIGHT - 400, 200, 20),
         ],
         "enemies": [
-            Enemy(200, SCREEN_HEIGHT - 90),
-            Enemy(500, SCREEN_HEIGHT - 300),
+            Enemy(200, SCREEN_HEIGHT - 90),    # Patrols on ground
+            Enemy(500, SCREEN_HEIGHT - 300),   # Patrols on middle platform
         ],
         "collectibles": [
             Collectible(100, SCREEN_HEIGHT - 70, "health_boost"),
             Collectible(500, SCREEN_HEIGHT - 70, "score_boost"),
         ],
-        "boss": None
+        "boss": None  # No boss in Level 1
     },
+
     # Level 2
     {
         "platforms": [
-            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40),  # Ground platform
             Platform(100, SCREEN_HEIGHT - 120, 150, 20),
             Platform(300, SCREEN_HEIGHT - 200, 200, 20),
             Platform(550, SCREEN_HEIGHT - 120, 150, 20),
@@ -511,24 +510,26 @@ level_data = [
             Collectible(600, SCREEN_HEIGHT - 70, "health_boost"),
             Collectible(450, SCREEN_HEIGHT - 450, "extra_life"),
         ],
-        "boss": None
+        "boss": None  # No boss in Level 2
     },
+
     # Level 3 (Boss Level)
     {
         "platforms": [
-            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40), # Ground
+            Platform(0, SCREEN_HEIGHT - 40, SCREEN_WIDTH, 40),  # Ground platform
             Platform(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT - 200, 200, 20),
             Platform(50, SCREEN_HEIGHT - 350, 100, 20),
             Platform(SCREEN_WIDTH - 150, SCREEN_HEIGHT - 350, 100, 20),
         ],
-        "enemies": [], # No normal enemies, only boss
+        "enemies": [],  # No normal enemies
         "collectibles": [
             Collectible(100, SCREEN_HEIGHT - 70, "health_boost"),
             Collectible(SCREEN_WIDTH - 100, SCREEN_HEIGHT - 70, "health_boost"),
         ],
-        "boss": Enemy(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT - 150, "boss")
+        "boss": Enemy(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT - 150, "boss")  # Boss fight
     },
 ]
+
 
 # Initialize the game
 def init_game():
