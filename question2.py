@@ -685,61 +685,69 @@ def show_level_completed_screen():
 def game_loop():
     global game_state, score, current_level_index
 
+    # Set up the clock to control game FPS
     clock = pygame.time.Clock()
     running = True
 
+    # Define dimensions and position of the Start button on the menu screen
     start_button_width = 200
     start_button_height = 60
     start_button_x = (SCREEN_WIDTH - start_button_width) // 2
     start_button_y = SCREEN_HEIGHT // 2 + 180
     start_button_rect = pygame.Rect(start_button_x, start_button_y, start_button_width, start_button_height)
 
+    # Create a player instance to display on the menu screen
     menu_player_display = Player(SCREEN_WIDTH // 2 - 20, SCREEN_HEIGHT // 2 - 80)
     menu_player_display.draw_character(menu_player_display.image, BLUE)
 
-
+    # Main game loop: runs while the game is running
     while running:
+        # Handle all events (input, quit, etc.)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                running = False  # Exit game loop if window is closed
             if event.type == pygame.K_ESCAPE: 
-                running = False
+                running = False  # Exit game loop if Escape key pressed (Note: This condition should check event.type == pygame.KEYDOWN)
+            
             if event.type == pygame.KEYDOWN:
+                # Handle keypresses differently depending on current game state
                 if game_state == PLAYING:
                     if event.key == pygame.K_LEFT:
-                        pass 
+                        pass  # Movement handled later by get_pressed()
                     if event.key == pygame.K_RIGHT:
                         pass
                     if event.key == pygame.K_SPACE:
-                        player.jump()
-                    if event.key == pygame.K_f: # 'F' for Fire
+                        player.jump()  # Make the player jump
+                    if event.key == pygame.K_f:  # 'F' key to shoot
                         player.shoot()
                 elif game_state == MENU:
-                    if event.key == pygame.K_RETURN: # Enter to start
-                        init_game() 
-                elif game_state == GAME_OVER or game_state == GAME_WON: 
-                    if event.key == pygame.K_r:
+                    if event.key == pygame.K_RETURN:  # Press Enter to start the game from menu
+                        init_game()
+                elif game_state == GAME_OVER or game_state == GAME_WON:
+                    if event.key == pygame.K_r:  # Restart game on 'R'
                         init_game()
                         game_state = PLAYING
-                    elif event.key == pygame.K_q:
-                        running = False 
+                    elif event.key == pygame.K_q:  # Quit game on 'Q'
+                        running = False
                 elif game_state == LEVEL_COMPLETED:
-                    if event.key == pygame.K_RETURN: 
+                    if event.key == pygame.K_RETURN:  # Continue to next level on Enter
                         load_level(current_level_index)
                         game_state = PLAYING
-            
-          
+
+            # Handle mouse click on start button in menu
             if game_state == MENU and event.type == pygame.MOUSEBUTTONDOWN:
                 if start_button_rect.collidepoint(event.pos):
                     init_game()
 
+        # Draw and update based on current game state
         if game_state == MENU:
             SCREEN.fill(BLACK)
+            # Display game title centered near the top
             title_text = large_font.render("The Jumper's Journey", True, WHITE)
             title_rect = title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 200))
             SCREEN.blit(title_text, title_rect)
 
-            # Display Instructions
+            # Display game instructions below the title
             instructions = [
                 "To Start the Game: Click 'Start' or Press ENTER",
                 "To Move Left: Press the LEFT ARROW key",
@@ -756,10 +764,11 @@ def game_loop():
                 SCREEN.blit(inst_text, inst_rect)
                 y_offset += 30
 
-            # Draw Start Button
+            # Draw Start button with green background and white border
             pygame.draw.rect(SCREEN, GREEN, start_button_rect, border_radius=10)
-            pygame.draw.rect(SCREEN, WHITE, start_button_rect, 3, border_radius=10) # Border
+            pygame.draw.rect(SCREEN, WHITE, start_button_rect, 3, border_radius=10)  # Border
 
+            # Draw "START GAME" text centered on the button
             start_text = medium_font.render("START GAME", True, BLACK)
             start_text_rect = start_text.get_rect(center=start_button_rect.center)
             SCREEN.blit(start_text, start_text_rect)    
@@ -767,71 +776,83 @@ def game_loop():
             pygame.display.flip()
 
         elif game_state == PLAYING:
+            # Get current keyboard state for smooth continuous movement
             keys = pygame.key.get_pressed()
             if keys[pygame.K_LEFT]:
-                player.move(-1)
+                player.move(-1)  # Move player left
             if keys[pygame.K_RIGHT]:
-                player.move(1)
+                player.move(1)  # Move player right
 
+            # Update player and enemies with respect to platforms
             player.update(platforms)
             enemies.update(platforms)
 
+            # Check for collision between player and enemies
             for enemy in pygame.sprite.spritecollide(player, enemies, False):
                 if player.invincible_timer == 0:
                     if player.take_damage(enemy.damage):
-                        
+                        # If player health <= 0 after damage, game over
                         if player.lives <= 0:
                             game_state = GAME_OVER
                         else:
-                            load_level(current_level_index) 
-                        break 
+                            # Reload current level if player still has lives
+                            load_level(current_level_index)
+                        break
 
+            # Check player projectiles hitting enemies
             for projectile in player.projectiles:
                 hit_enemies = pygame.sprite.spritecollide(projectile, enemies, False)
                 for enemy in hit_enemies:
-                    projectile.kill() 
+                    projectile.kill()  # Remove projectile after hit
                     if enemy.take_damage(projectile.damage):
-                        score += 100 
-                        enemy.kill()
+                        score += 100  # Award points for damaging enemy
+                        enemy.kill()  # Remove enemy if health depleted
                         if enemy.enemy_type == "boss":
-                          
+                            # If boss defeated, advance to next level or win game
                             current_level_index += 1
                             if current_level_index < len(level_data):
-                                game_state = LEVEL_COMPLETED 
+                                game_state = LEVEL_COMPLETED
                             else:
-                                game_state = GAME_WON # Set to GAME_WON state
-                                break
-                if game_state == GAME_WON or game_state == LEVEL_COMPLETED: 
-                    break 
+                                game_state = GAME_WON
+                            break
+                if game_state == GAME_WON or game_state == LEVEL_COMPLETED:
+                    break
 
+            # If game has ended or level completed, skip rest of loop and wait in respective screen
             if game_state == GAME_WON or game_state == GAME_OVER or game_state == LEVEL_COMPLETED:
-                continue       
-            for collectible in pygame.sprite.spritecollide(player, collectibles, True): # True to remove collectible
+                continue
+
+            # Check for player collecting collectibles
+            for collectible in pygame.sprite.spritecollide(player, collectibles, True):  # Remove collectible on pickup
                 if collectible.collectible_type == "health_boost":
+                    # Increase player health, capped at max health
                     player.health = min(player.max_health, player.health + collectible.value)
                     score += 20
                 elif collectible.collectible_type == "extra_life":
-                    player.lives += collectible.value
+                    player.lives += collectible.value  # Increase lives
                     score += 50
                 elif collectible.collectible_type == "score_boost":
-                    score += collectible.value
+                    score += collectible.value  # Add bonus points
 
-    
+            # Check if level completed this frame by seeing if no enemies remain
             level_completed_this_frame = False
-            if current_level_index < len(level_data): 
-                if not enemies: 
+            if current_level_index < len(level_data):
+                if not enemies:
+                    # If boss exists, level completes only when boss defeated
                     if level_data[current_level_index]["boss"] is not None:
                         level_completed_this_frame = True
                     else:
                         level_completed_this_frame = True
-            
+
+            # Handle advancing to next level or winning game after level completion
             if level_completed_this_frame:
                 current_level_index += 1
                 if current_level_index < len(level_data):
-                    game_state = LEVEL_COMPLETED 
+                    game_state = LEVEL_COMPLETED
                 else:
                     game_state = GAME_WON
-                continue 
+                continue
+ 
 
 
             SCREEN.fill(BLACK) # Clear screen
