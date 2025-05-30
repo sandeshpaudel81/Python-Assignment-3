@@ -10,6 +10,7 @@ class BaseImageEditor:
         self._resized_image = None
         self._crop_rectangle = None
 
+    # Selecting and loading the preferred image from the local device
     def load_image(self, path):
         try:
             self._image = cv2.imread(path)
@@ -22,6 +23,9 @@ class BaseImageEditor:
         except Exception as e:
             raise IOError(f"Error loading image: {e}")
         
+    ''' Cropping the image by drawing a rectangle
+        Displaying the Cropped image
+    '''
     def crop_image(self):
         if self._image is None or self._crop_rectangle is None:
             return None
@@ -29,6 +33,8 @@ class BaseImageEditor:
         self._cropped_image = self._image[y1:y2, x1:x2]
         self._resized_image = self._cropped_image.copy()
         return self._cropped_image
+    
+    # Resizing the cropped image
 
     def resize_image(self, scale):
         if self._cropped_image is None:
@@ -37,6 +43,8 @@ class BaseImageEditor:
         height = int(self._cropped_image.shape[0] * scale / 100)
         self._resized_image = cv2.resize(self._cropped_image, (width, height))
         return self._resized_image
+
+    # Saving the modified image
 
     def save_image(self, path):
         if self._resized_image is None:
