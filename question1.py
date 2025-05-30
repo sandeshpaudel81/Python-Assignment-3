@@ -34,7 +34,7 @@ class BaseImageEditor:
         self._resized_image = self._cropped_image.copy()
         return self._cropped_image
     
-    # Resizing the cropped image
+    # Resizing the cropped image by a given scale percentage
 
     def resize_image(self, scale):
         if self._cropped_image is None:
