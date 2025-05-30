@@ -32,12 +32,52 @@ class ImageEditorApp:
         self.cropped_label = Label(self.preview_frame, bg="gray")
         self.cropped_label.pack(expand=True, fill="both")
 
-        button_frame = Frame(root)
-        button_frame.pack(pady=10)
+        self.button_frame = Frame(root)
+        self.button_frame.pack(pady=10)
+
+        # color1='#020f12'
+        # color2='#05d7ff'
+        # color3='#65e7ff'
+        # color4='#000000'
 
         # Buttons side by side in the button_frame using grid
-        Button(button_frame, text="Load Image", command=self.load_image).grid(row=0, column=0, padx=10)
-        Button(button_frame, text="Save Cropped Image", command=self.save_image).grid(row=0, column=1, padx=10)
+        self.load_button = Button(
+            self.button_frame,
+            background='#05d7ff',
+            foreground='#000000',
+            activebackground='#65e7ff',
+            activeforeground='#000000',
+            highlightthickness=2,
+            highlightbackground='#05d7ff',
+            highlightcolor='#ffffff',
+            width=13,
+            height=1,
+            border=0,
+            cursor='hand2',
+            text="Load Image",
+            font=('Arial', 12),
+            command=self.load_image
+        )
+        self.load_button.grid(row=0, column=0, padx=10)
+
+        self.save_button = Button(
+            self.button_frame,
+            background='#05d7ff',
+            foreground='#000000',
+            activebackground='#65e7ff',
+            activeforeground='#000000',
+            highlightthickness=2,
+            highlightbackground='#05d7ff',
+            highlightcolor='#ffffff',
+            width=13,
+            height=1,
+            border=0,
+            cursor='hand2',
+            text="Save Image",
+            font=('Arial', 12),
+            command=self.save_image
+        )
+        self.save_button.grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
         slider_frame = Frame(root)
