@@ -1,5 +1,5 @@
 import cv2
-import numpy as np
+import customtkinter
 from tkinter import Tk, Label, Button, Scale, filedialog, Frame, HORIZONTAL, Text
 from PIL import Image, ImageTk
 
@@ -80,13 +80,29 @@ class ImageEditorApp:
         self.save_button.grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
-        slider_frame = Frame(root)
-        slider_frame.pack(pady=5)
+        self.slider_frame = Frame(root)
+        self.slider_frame.pack(pady=5)
 
-        self.resize_slider = Scale(slider_frame, from_=10, to=200, orient=HORIZONTAL,
-                                label="Resize %", command=self.resize_image, length=300)
+        # self.resize_slider = Scale(slider_frame, from_=10, to=200, orient=HORIZONTAL,
+        #                         label="Resize %", command=self.resize_image, length=300)
+        
+
+        self.resize_slider = customtkinter.CTkSlider(
+            self.slider_frame, 
+            from_=0, 
+            to=200, 
+            number_of_steps=10,
+            width=300,
+            height=20,
+            fg_color='gray',
+            progress_color='#05d7ff',
+            button_color='orange',
+            command=self.resize_image
+        )
         self.resize_slider.pack()
         self.resize_slider.set(100)  # Default to 100% (no resize)
+        self.slider_label = Label(self.slider_frame, text="", font=("Helvetica", 12, 'bold'))
+        self.slider_label.pack(pady=2)
 
         self.cropped_shape_label = Label(root, text="Cropped Image: x x x", font=("Helvetica", 12))
         self.cropped_shape_label.pack(pady=2)
@@ -261,6 +277,7 @@ class ImageEditorApp:
         if self.cropped_image is None or self.crop_rect is None:
             return
         scale = int(value)
+        self.slider_label.configure(text=scale)
         width = int(self.cropped_image.shape[1] * scale / 100)
         height = int(self.cropped_image.shape[0] * scale / 100)
         self.resizedImageShape = str(width) + ' x ' + str(height)
