@@ -162,6 +162,15 @@ class ImageEditorApp(BaseImageEditor):
         self.original_label.bind("<B1-Motion>", self.do_resize)
         self.original_label.bind("<ButtonRelease-1>", self.end_resize)
 
+        self.root.bind_all("<Control-o>", self.load_image_event)
+        self.root.bind_all("<Control-s>", self.save_image_event)
+
+    def load_image_event(self, event=None):
+        self.ui_load_image()
+
+    def save_image_event(self, event=None):
+        self.ui_save_image()
+
     # Load an image using file dialog and initialize crop area in center
     def ui_load_image(self):
         path = filedialog.askopenfilename()
@@ -321,6 +330,9 @@ class ImageEditorApp(BaseImageEditor):
 
     # Save the resized image using file dialog
     def ui_save_image(self):
+        if self._resized_image is None:
+            self.application_message_label.config(text="Oops! No image to save.", fg='red')
+            return
         path = filedialog.asksaveasfilename(defaultextension=".png",
                                             filetypes=[("PNG Files", "*.png"), ("JPEG Files", "*.jpg *.jpeg")])
         if not path:
