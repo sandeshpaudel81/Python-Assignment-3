@@ -79,21 +79,16 @@ class ImageEditorApp(BaseImageEditor):
         self.button_frame = Frame(root)
         self.button_frame.pack(pady=10)
 
-        # color1='#020f12'
-        # color2='#05d7ff'
-        # color3='#65e7ff'
-        # color4='#000000'
-
         # Buttons side by side in the button_frame using grid
         self.load_button = Button(
             self.button_frame,
-            background='#05d7ff',
-            foreground='#000000',
-            activebackground='#65e7ff',
-            activeforeground='#000000',
+            background='#01016F',
+            foreground='#FFFFFF',
+            activebackground='#0000FF',
+            activeforeground='#FFFFFF',
             highlightthickness=2,
-            highlightbackground='#05d7ff',
-            highlightcolor='#ffffff',
+            highlightbackground='#0000FF',
+            highlightcolor='#FFFFFF',
             width=13,
             height=1,
             border=0,
@@ -106,13 +101,13 @@ class ImageEditorApp(BaseImageEditor):
 
         self.save_button = Button(
             self.button_frame,
-            background='#05d7ff',
-            foreground='#000000',
-            activebackground='#65e7ff',
-            activeforeground='#000000',
+            background='#01016F',
+            foreground='#FFFFFF',
+            activebackground='#0000FF',
+            activeforeground='#FFFFFF',
             highlightthickness=2,
-            highlightbackground='#05d7ff',
-            highlightcolor='#ffffff',
+            highlightbackground='#0000FF',
+            highlightcolor='#FFFFFF',
             width=13,
             height=1,
             border=0,
@@ -136,8 +131,8 @@ class ImageEditorApp(BaseImageEditor):
             width=300,
             height=20,
             fg_color='gray',
-            progress_color='#05d7ff',
-            button_color='orange',
+            progress_color='#01016F',
+            button_color='#0000FF',
             command=self.ui_resize_image
         )
         self.resize_slider.pack()
@@ -145,10 +140,10 @@ class ImageEditorApp(BaseImageEditor):
         self.slider_label = Label(self.slider_frame, text="", font=("Helvetica", 12, 'bold'))
         self.slider_label.pack()
 
-        self.cropped_shape_label = Label(root, text="Cropped Image: x x x", font=("Helvetica", 12))
+        self.cropped_shape_label = Label(self.slider_frame, text="Cropped Image: x x x", font=("Helvetica", 12))
         self.cropped_shape_label.pack()
 
-        self.resized_shape_label = Label(root, text="Resized Image: x x x", font=("Helvetica", 12))
+        self.resized_shape_label = Label(self.slider_frame, text="Resized Image: x x x", font=("Helvetica", 12))
         self.resized_shape_label.pack()
 
         # Initialize state variables
@@ -215,19 +210,16 @@ class ImageEditorApp(BaseImageEditor):
     def draw_crop_rectangle(self):
         preview = self._image.copy()
         x1, y1, x2, y2 = self._crop_rectangle
-        thick = 10  # Thickness when hovered
-        thin = 5    # Normal thickness
+        # Draw crop rectangle
+        cv2.rectangle(preview, (x1, y1), (x2, y2), (255, 0, 0), 5)
 
-        if self.hover_side in ['left', 'right', 'top', 'bottom']:
-            color = (0, 255, 0)
-            # Draw each edge of the crop box individually
-            cv2.line(preview, (x1, y1), (x1, y2), color, thick if self.hover_side == 'left' else thin)
-            cv2.line(preview, (x2, y1), (x2, y2), color, thick if self.hover_side == 'right' else thin)
-            cv2.line(preview, (x1, y1), (x2, y1), color, thick if self.hover_side == 'top' else thin)
-            cv2.line(preview, (x1, y2), (x2, y2), color, thick if self.hover_side == 'bottom' else thin)
-        else:
-            # Default full rectangle without edge highlight
-            cv2.rectangle(preview, (x1, y1), (x2, y2), (0, 255, 0), thin)
+        # Draw corner and side nodes
+        node_color = (111,1,1)
+        node_size = 15
+
+        # Corner nodes
+        for (cx, cy) in [(x1, y1), (x2, y1), (x1, y2), (x2, y2)]:
+            cv2.rectangle(preview, (cx - node_size, cy - node_size), (cx + node_size, cy + node_size), node_color, -1)
 
         self.display_image(preview, self.original_label)
 
@@ -260,16 +252,24 @@ class ImageEditorApp(BaseImageEditor):
         self.hover_side = None
         if abs(x - x1) < margin:
             self.hover_side = 'left'
+            self.root.config(cursor='sb_h_double_arrow')
         elif abs(x - x2) < margin:
             self.hover_side = 'right'
+            self.root.config(cursor='sb_h_double_arrow')
         elif abs(y - y1) < margin:
             self.hover_side = 'top'
+            self.root.config(cursor='sb_v_double_arrow')
         elif abs(y - y2) < margin:
             self.hover_side = 'bottom'
+            self.root.config(cursor='sb_v_double_arrow')
         elif abs(x - x1) < margin and abs(y - y1) < margin:
             self.hover_side = 'topleft'
+            self.root.config(cursor='top_left_corner')
         elif abs(x - x2) < margin and abs(y - y2) < margin:
             self.hover_side = 'bottomright'
+            self.root.config(cursor='bottom_right_corner')
+        else:
+            self.root.config(cursor='arrow')
 
         self.update_display()
 
