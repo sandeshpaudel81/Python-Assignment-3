@@ -83,15 +83,12 @@ class ImageEditorApp:
         self.slider_frame = Frame(root)
         self.slider_frame.pack(pady=5)
 
-        # self.resize_slider = Scale(slider_frame, from_=10, to=200, orient=HORIZONTAL,
-        #                         label="Resize %", command=self.resize_image, length=300)
-        
-
+        Label(self.slider_frame, text="Slide to Resize Image", font=("Arial", 12)).pack()
         self.resize_slider = customtkinter.CTkSlider(
             self.slider_frame, 
             from_=0, 
             to=200, 
-            number_of_steps=10,
+            number_of_steps=20,
             width=300,
             height=20,
             fg_color='gray',
@@ -102,10 +99,10 @@ class ImageEditorApp:
         self.resize_slider.pack()
         self.resize_slider.set(100)  # Default to 100% (no resize)
         self.slider_label = Label(self.slider_frame, text="", font=("Helvetica", 12, 'bold'))
-        self.slider_label.pack(pady=2)
+        self.slider_label.pack()
 
         self.cropped_shape_label = Label(root, text="Cropped Image: x x x", font=("Helvetica", 12))
-        self.cropped_shape_label.pack(pady=2)
+        self.cropped_shape_label.pack()
 
         self.resized_shape_label = Label(root, text="Resized Image: x x x", font=("Helvetica", 12))
         self.resized_shape_label.pack()
