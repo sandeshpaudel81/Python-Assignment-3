@@ -260,16 +260,24 @@ class ImageEditorApp(BaseImageEditor):
         self.hover_side = None
         if abs(x - x1) < margin:
             self.hover_side = 'left'
+            self.root.config(cursor='sb_h_double_arrow')
         elif abs(x - x2) < margin:
             self.hover_side = 'right'
+            self.root.config(cursor='sb_h_double_arrow')
         elif abs(y - y1) < margin:
             self.hover_side = 'top'
+            self.root.config(cursor='sb_v_double_arrow')
         elif abs(y - y2) < margin:
             self.hover_side = 'bottom'
+            self.root.config(cursor='sb_v_double_arrow')
         elif abs(x - x1) < margin and abs(y - y1) < margin:
             self.hover_side = 'topleft'
+            self.root.config(cursor='top_left_corner')
         elif abs(x - x2) < margin and abs(y - y2) < margin:
             self.hover_side = 'bottomright'
+            self.root.config(cursor='bottom_right_corner')
+        else:
+            self.root.config(cursor='arrow')
 
         self.update_display()
 
