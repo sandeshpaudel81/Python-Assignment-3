@@ -37,7 +37,7 @@ class ImageEditorApp:
 
         # Buttons side by side in the button_frame using grid
         Button(button_frame, text="Load Image", command=self.load_image).grid(row=0, column=0, padx=10)
-        Button(button_frame, text="Save Cropped Image", command=self.save_image).grid(row=0, column=1, padx=10)
+        Button(button_frame, text="Save Image", command=self.save_image).grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
         slider_frame = Frame(root)
