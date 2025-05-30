@@ -164,12 +164,22 @@ class ImageEditorApp(BaseImageEditor):
 
         self.root.bind_all("<Control-o>", self.load_image_event)
         self.root.bind_all("<Control-s>", self.save_image_event)
+        self.root.bind_all("<Control-r>", self.reset_crop_event)
 
     def load_image_event(self, event=None):
         self.ui_load_image()
 
     def save_image_event(self, event=None):
         self.ui_save_image()
+
+    def reset_crop_event(self, event=None):
+        if self._image is not None:
+            h, w = self._image.shape[:2]
+            crop_w, crop_h = w // 2, h // 2
+            x1, y1 = (w - crop_w) // 2, (h - crop_h) // 2
+            self._crop_rectangle = [x1, y1, x1 + crop_w, y1 + crop_h]
+            self.update_display()
+            self.application_message_label.config(text="Crop area reset.")
 
     # Load an image using file dialog and initialize crop area in center
     def ui_load_image(self):
