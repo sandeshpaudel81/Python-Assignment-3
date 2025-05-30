@@ -59,6 +59,8 @@ class ImageEditorApp:
             command=self.load_image
         )
         self.load_button.grid(row=0, column=0, padx=10)
+        self.load_button.bind("<Enter>", self.on_enter_button(self.load_button))
+        self.load_button.bind("<Leave>", self.on_leave_button(self.load_button))
         Button(self.button_frame, text="Save Image", command=self.save_image).grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
@@ -260,6 +262,12 @@ class ImageEditorApp:
             cv2.imwrite(path, self.resized_image)
             print("Image saved to:", path)
             self.application_message_label.config(text=f"Image saved to: {path}", fg='green')
+
+    def on_enter_button(self, button):
+        button.config(background='#65e7ff')
+
+    def on_leave_button(self, button):
+        button.config(background='#05d7ff')
 
 # Launch the GUI application
 if __name__ == "__main__":
