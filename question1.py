@@ -61,20 +61,7 @@ class ImageEditorApp(BaseImageEditor):
         self.root = root
         self.root.title("Image Editor")  # Set window title
 
-        # Application Header
-        self.header = Label(root, text="Image Editor", font=("Helvetica", 16, "bold"))
-        self.header.pack(pady=10)
 
-        self.application_message_label = Label(root, text="", font=("Helvetica", 12))
-        self.application_message_label.pack(pady=2)
-
-        # Main container for original and cropped images
-        self.frame = Frame(root)
-        self.frame.pack()
-
-        # Label to show the original image with crop overlay
-        self.original_label = Label(self.frame)
-        self.original_label.grid(row=0, column=0)
 
         # Label to show the cropped/preview image
         self.preview_frame = Frame(self.frame, width=300, height=300)
