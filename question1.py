@@ -166,6 +166,8 @@ class ImageEditorApp(BaseImageEditor):
         self.root.bind_all("<Control-s>", self.save_image_event)
         self.root.bind_all("<Control-r>", self.reset_crop_event)
 
+        Label(root, text="Load(Ctrl+O), Save(Ctrl+S), Reset(Ctrl+R)", bg="#cecece", fg="black").place(x=0, y=0)
+
     def load_image_event(self, event=None):
         self.ui_load_image()
 
