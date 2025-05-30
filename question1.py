@@ -61,7 +61,20 @@ class ImageEditorApp(BaseImageEditor):
         self.root = root
         self.root.title("Image Editor")  # Set window title
 
+    # Application Header
+        self.header = Label(root, text="Image Editor", font=("Helvetica", 16, "bold"))
+        self.header.pack(pady=10)
 
+        self.application_message_label = Label(root, text="", font=("Helvetica", 12))
+        self.application_message_label.pack(pady=2)
+
+        # Main container for both the original and cropped images
+        self.frame = Frame(root)
+        self.frame.pack()
+
+        # Label to show the original image with crop overlay
+        self.original_label = Label(self.frame)
+        self.original_label.grid(row=0, column=0)
 
         # Label to show the cropped/preview image
         self.preview_frame = Frame(self.frame, width=300, height=300)
@@ -152,12 +165,14 @@ class ImageEditorApp(BaseImageEditor):
         self.original_label.bind("<B1-Motion>", self.do_resize)
         self.original_label.bind("<ButtonRelease-1>", self.end_resize)
 
+        # Bind keyboard shortcuts to corresponding image actions
         self.root.bind_all("<Control-o>", self.load_image_event)
         self.root.bind_all("<Control-s>", self.save_image_event)
         self.root.bind_all("<Control-r>", self.reset_crop_event)
 
         Label(root, text="Load(Ctrl+O), Save(Ctrl+S), Reset(Ctrl+R)", bg="#cecece", fg="black").place(x=0, y=0)
 
+    # Event Handlers
     def load_image_event(self, event=None):
         self.ui_load_image()
 
