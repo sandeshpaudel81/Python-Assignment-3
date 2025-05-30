@@ -1,11 +1,55 @@
 import cv2
-import numpy as np
-from tkinter import Tk, Label, Button, Scale, filedialog, Frame, HORIZONTAL, Text
+import customtkinter
+from tkinter import Tk, Label, Button, filedialog, Frame
 from PIL import Image, ImageTk
 
+class BaseImageEditor:
+    def __init__(self):
+        self._image = None
+        self._cropped_image = None
+        self._resized_image = None
+        self._crop_rectangle = None
+
+    def load_image(self, path):
+        try:
+            self._image = cv2.imread(path)
+            if self._image is None:
+                raise ValueError("Failed to load image.")
+            h, w = self._image.shape[:2]
+            crop_w, crop_h = w // 2, h // 2
+            x1, y1 = (w - crop_w) // 2, (h - crop_h) // 2
+            self._crop_rectangle = [x1, y1, x1 + crop_w, y1 + crop_h]
+        except Exception as e:
+            raise IOError(f"Error loading image: {e}")
+        
+    def crop_image(self):
+        if self._image is None or self._crop_rectangle is None:
+            return None
+        x1, y1, x2, y2 = self._crop_rectangle
+        self._cropped_image = self._image[y1:y2, x1:x2]
+        self._resized_image = self._cropped_image.copy()
+        return self._cropped_image
+
+    def resize_image(self, scale):
+        if self._cropped_image is None:
+            return None
+        width = int(self._cropped_image.shape[1] * scale / 100)
+        height = int(self._cropped_image.shape[0] * scale / 100)
+        self._resized_image = cv2.resize(self._cropped_image, (width, height))
+        return self._resized_image
+
+    def save_image(self, path):
+        if self._resized_image is None:
+            raise ValueError("No image to save.")
+        try:
+            cv2.imwrite(path, self._resized_image)
+        except Exception as e:
+            raise IOError(f"Failed to save image: {e}")
+
 # GUI-based Image Crop and Resize Editor using OpenCV, Tkinter, and PIL
-class ImageEditorApp:
+class ImageEditorApp(BaseImageEditor):
     def __init__(self, root):
+        super().__init__()
         self.root = root
         self.root.title("Image Editor")  # Set window title
 
@@ -56,7 +100,7 @@ class ImageEditorApp:
             cursor='hand2',
             text="Load Image",
             font=('Arial', 12),
-            command=self.load_image
+            command=self.ui_load_image
         )
         self.load_button.grid(row=0, column=0, padx=10)
 
@@ -75,33 +119,39 @@ class ImageEditorApp:
             cursor='hand2',
             text="Save Image",
             font=('Arial', 12),
-            command=self.save_image
+            command=self.ui_save_image
         )
         self.save_button.grid(row=0, column=1, padx=10)
 
         # Slider to resize cropped image by percentage
-        slider_frame = Frame(root)
-        slider_frame.pack(pady=5)
+        self.slider_frame = Frame(root)
+        self.slider_frame.pack(pady=5)
 
-        self.resize_slider = Scale(slider_frame, from_=10, to=200, orient=HORIZONTAL,
-                                label="Resize %", command=self.resize_image, length=300)
+        Label(self.slider_frame, text="Slide to Resize Image", font=("Arial", 12)).pack()
+        self.resize_slider = customtkinter.CTkSlider(
+            self.slider_frame, 
+            from_=0, 
+            to=200, 
+            number_of_steps=20,
+            width=300,
+            height=20,
+            fg_color='gray',
+            progress_color='#05d7ff',
+            button_color='orange',
+            command=self.ui_resize_image
+        )
         self.resize_slider.pack()
-        self.resize_slider.set(100)  # Default to 100% (no resize)
+        self.resize_slider.set(100)
+        self.slider_label = Label(self.slider_frame, text="", font=("Helvetica", 12, 'bold'))
+        self.slider_label.pack()
 
         self.cropped_shape_label = Label(root, text="Cropped Image: x x x", font=("Helvetica", 12))
-        self.cropped_shape_label.pack(pady=2)
+        self.cropped_shape_label.pack()
 
         self.resized_shape_label = Label(root, text="Resized Image: x x x", font=("Helvetica", 12))
         self.resized_shape_label.pack()
 
         # Initialize state variables
-        self.image = None  # Full loaded image
-        self.imageShape = None
-        self.cropped_image = None # Cropped region from full image
-          
-        self.resized_image = None  # Cropped image after resizing
-        
-        self.crop_rect = None  # Coordinates of crop rectangle [x1, y1, x2, y2]
         self.drag_mode = None  # Mode used while dragging to resize crop area
         self.drag_start = (0, 0)  # Initial mouse position during dragging
         self.hover_side = None  # Current side hovered for visual feedback
@@ -112,21 +162,40 @@ class ImageEditorApp:
         self.original_label.bind("<B1-Motion>", self.do_resize)
         self.original_label.bind("<ButtonRelease-1>", self.end_resize)
 
+        self.root.bind_all("<Control-o>", self.load_image_event)
+        self.root.bind_all("<Control-s>", self.save_image_event)
+        self.root.bind_all("<Control-r>", self.reset_crop_event)
+
+        Label(root, text="Load(Ctrl+O), Save(Ctrl+S), Reset(Ctrl+R)", bg="#cecece", fg="black").place(x=0, y=0)
+
+    def load_image_event(self, event=None):
+        self.ui_load_image()
+
+    def save_image_event(self, event=None):
+        self.ui_save_image()
+
+    def reset_crop_event(self, event=None):
+        if self._image is not None:
+            h, w = self._image.shape[:2]
+            crop_w, crop_h = w // 2, h // 2
+            x1, y1 = (w - crop_w) // 2, (h - crop_h) // 2
+            self._crop_rectangle = [x1, y1, x1 + crop_w, y1 + crop_h]
+            self.update_display()
+            self.application_message_label.config(text="Crop area reset.")
+
     # Load an image using file dialog and initialize crop area in center
-    def load_image(self):
+    def ui_load_image(self):
         path = filedialog.askopenfilename()
         if not path:
             return
-
-        self.image = cv2.imread(path)
-        h, w = self.image.shape[:2]
-
-        # Set crop area to center 50% of the image
-        crop_w, crop_h = w // 2, h // 2
-        x1, y1 = (w - crop_w) // 2, (h - crop_h) // 2
-        self.crop_rect = [x1, y1, x1 + crop_w, y1 + crop_h]
-        self.application_message_label.config(text="")
-        self.update_display()
+        try:
+            self.load_image(path)
+            self.crop_image()
+            self.display_image(self._image, self.original_label)
+            self.display_image(self._resized_image, self.cropped_label, max_size=(300, 300))
+            self.application_message_label.config(text="Image loaded successfully.")
+        except Exception as e:
+            self.application_message_label.config(text=str(e), fg='red')
 
     # Display an image in a given label, resizing it to fit max dimensions
     def display_image(self, image, label, max_size=(500, 500)):
@@ -139,13 +208,13 @@ class ImageEditorApp:
 
     # Refresh both the crop rectangle and cropped preview
     def update_display(self):
-        self.draw_crop_rect()
+        self.draw_crop_rectangle()
         self.update_crop_preview()
 
     # Draw the crop rectangle on the original image for visual feedback
-    def draw_crop_rect(self):
-        preview = self.image.copy()
-        x1, y1, x2, y2 = self.crop_rect
+    def draw_crop_rectangle(self):
+        preview = self._image.copy()
+        x1, y1, x2, y2 = self._crop_rectangle
         thick = 10  # Thickness when hovered
         thin = 5    # Normal thickness
 
@@ -164,28 +233,28 @@ class ImageEditorApp:
 
     # Crop the selected region and show the resized version
     def update_crop_preview(self):
-        x1, y1, x2, y2 = self.crop_rect
-        self.cropped_image = self.image[y1:y2, x1:x2]
-        self.resized_image = self.cropped_image.copy()
-        self.display_image(self.resized_image, self.cropped_label, max_size=(300, 300))
-        h, w = self.cropped_image.shape[:2]
+        x1, y1, x2, y2 = self._crop_rectangle
+        self._cropped_image = self._image[y1:y2, x1:x2]
+        self._resized_image = self._cropped_image.copy()
+        self.display_image(self._resized_image, self.cropped_label, max_size=(300, 300))
+        h, w = self._cropped_image.shape[:2]
         self.cropped_shape_label.config(text=f"Cropped Image: {w} × {h}")
 
     # Convert mouse coordinates on label to image coordinates
     def get_mouse_image_coords(self, event):
         label_w = self.original_label.winfo_width()
         label_h = self.original_label.winfo_height()
-        img_h, img_w = self.image.shape[:2]
+        img_h, img_w = self._image.shape[:2]
         scale_x = img_w / label_w
         scale_y = img_h / label_h
         return int(event.x * scale_x), int(event.y * scale_y)
 
     # Handle cursor hovering over crop rectangle sides
     def on_mouse_move(self, event):
-        if self.image is None:
+        if self._image is None:
             return
         x, y = self.get_mouse_image_coords(event)
-        x1, y1, x2, y2 = self.crop_rect
+        x1, y1, x2, y2 = self._crop_rectangle
         margin = 10
 
         self.hover_side = None
@@ -206,10 +275,10 @@ class ImageEditorApp:
 
     # Start resizing crop area on mouse click
     def start_resize(self, event):
-        if self.image is None:
+        if self._image is None:
             return
         x, y = self.get_mouse_image_coords(event)
-        x1, y1, x2, y2 = self.crop_rect
+        x1, y1, x2, y2 = self._crop_rectangle
         margin = 10
 
         # Determine which side or corner to resize
@@ -232,23 +301,23 @@ class ImageEditorApp:
 
     # Resize crop rectangle dynamically during mouse drag
     def do_resize(self, event):
-        if self.image is None or not self.drag_mode:
+        if self._image is None or not self.drag_mode:
             return
         x, y = self.get_mouse_image_coords(event)
         dx, dy = x - self.drag_start[0], y - self.drag_start[1]
-        x1, y1, x2, y2 = self.crop_rect
+        x1, y1, x2, y2 = self._crop_rectangle
 
         # Adjust crop rectangle sides based on drag direction and mode
         if 'left' in self.drag_mode:
             x1 = max(0, min(x1 + dx, x2 - 10))
         if 'right' in self.drag_mode:
-            x2 = min(self.image.shape[1], max(x2 + dx, x1 + 10))
+            x2 = min(self._image.shape[1], max(x2 + dx, x1 + 10))
         if 'top' in self.drag_mode:
             y1 = max(0, min(y1 + dy, y2 - 10))
         if 'bottom' in self.drag_mode:
-            y2 = min(self.image.shape[0], max(y2 + dy, y1 + 10))
+            y2 = min(self._image.shape[0], max(y2 + dy, y1 + 10))
 
-        self.crop_rect = [x1, y1, x2, y2]
+        self._crop_rectangle = [x1, y1, x2, y2]
         self.drag_start = (x, y)
         self.update_display()
 
@@ -257,27 +326,34 @@ class ImageEditorApp:
         self.drag_mode = None
 
     # Resize the cropped image using the value from the slider
-    def resize_image(self, value):
-        if self.cropped_image is None or self.crop_rect is None:
-            return
+    def ui_resize_image(self, value):
         scale = int(value)
-        width = int(self.cropped_image.shape[1] * scale / 100)
-        height = int(self.cropped_image.shape[0] * scale / 100)
-        self.resizedImageShape = str(width) + ' x ' + str(height)
-        self.resized_image = cv2.resize(self.cropped_image, (width, height))
-        self.display_image(self.resized_image, self.cropped_label)
-        self.resized_shape_label.config(text=f"Resized Image: {width} × {height}")
+        try:
+            img = self.resize_image(float(value))
+            if img is not None:
+                self.slider_label.configure(text=scale)
+                width = int(self._cropped_image.shape[1] * scale / 100)
+                height = int(self._cropped_image.shape[0] * scale / 100)
+                self.resized_shape_label.config(text=f"Resized Image: {width} × {height}")
+                self.display_image(img, self.cropped_label, max_size=(300, 300))
+                self.slider_label.config(text=f"{int(value)}%")
+        except Exception as e:
+            self.application_message_label.config(text=str(e), fg='red')
 
     # Save the resized image using file dialog
-    def save_image(self):
-        if self.resized_image is None:
+    def ui_save_image(self):
+        if self._resized_image is None:
+            self.application_message_label.config(text="Oops! No image to save.", fg='red')
             return
         path = filedialog.asksaveasfilename(defaultextension=".png",
                                             filetypes=[("PNG Files", "*.png"), ("JPEG Files", "*.jpg *.jpeg")])
-        if path:
-            cv2.imwrite(path, self.resized_image)
-            print("Image saved to:", path)
-            self.application_message_label.config(text=f"Image saved to: {path}", fg='green')
+        if not path:
+            return
+        try:
+            self.save_image(path)
+            self.application_message_label.config(text=f"Image saved to {path}", fg='green')
+        except Exception as e:
+            self.application_message_label.config(text=str(e), fg='red')
 
 # Launch the GUI application
 if __name__ == "__main__":
